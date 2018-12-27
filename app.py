@@ -5,13 +5,18 @@ from werkzeug.utils import secure_filename
 from flask import send_from_directory
 
 up_folder = './uploads'
+out_folder = './output'
 allowed_extensions = set(['txt', 'png', 'jpg'])
 
 if not os.path.exists(up_folder):
     os.makedirs(up_folder)
+if not os.path.exists(out_folder):
+    os.makedirs(out_folder)
 
 app = Flask(__name__, static_url_path='')
 app.config['UPLOAD_FOLDER'] = up_folder
+app.config['OUTPUT_FOLDER'] = out_folder
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
@@ -19,6 +24,12 @@ def allowed_file(filename):
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/output/<filename>')
+def output_file(filename):
+    if os.path.exists(out_folder+'/'+filename):
+        return send_from_directory(app.config['OUTPUT_FOLDER'], filename)
+    return app.send_static_file('analysing.html')
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
@@ -33,7 +44,8 @@ def upload_file():
         if ufile and allowed_file(ufile.filename):
             filename = secure_filename(ufile.filename)
             ufile.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect('/')
+            os.system("script/lineLength"+" 0<uploads/"+filename + " 1>output/"+filename)
+            return redirect('/output/'+filename)
     return app.send_static_file('upload.html')
 
 if __name__=="__main__":

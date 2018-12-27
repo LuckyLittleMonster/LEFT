@@ -21,7 +21,17 @@ const NOT_FOUND = 404;
 const CONFLICT = 409;
 const SERVER_ERROR = 500;
 
+async function connectDatabase(mongoUrl, dbName) {
+    let mid = new UserMiddleware(mongoUrl, dbName);
 
+    mid.client = await mongo.connect(mongoUrl, MONGO_OPTIONS);
+    mid.db = mid.client.db(dbName);
+    mid.userInfo = mid.db.collection(USER_INFO_TABLE_NAME);
+    mid.fileInfo = mid.db.collection(FILE_INFO_TABLE_NAME);
+
+    return mid;
+  }
+module.exports = connectDatabase;
 
 class UserMiddleware {
   constructor(mongoUrl, dbName) {
@@ -30,29 +40,25 @@ class UserMiddleware {
     this.userInfoTableName = USER_INFO_TABLE_NAME;
     this.fileInfoTableName = FILE_INFO_TABLE_NAME;
 
-    this.client = await mongo.connect(mongoUrl, MONGO_OPTIONS);
-    this.db = this.client.db(dbName);
-    this.userInfo = this.db.collection(USER_INFO_TABLE_NAME);
-    this.fileInfo = this.db.collection(FILE_INFO_TABLE_NAME);
+    
   }
 
   async insert(obj, isFile=false) {
     
     const objType = (isFile)?"file":"user";
     const validMsg = (isFile)?
-      isValid(obj, [{name:'_id'}, {name:'userId'}, {name:'path'}, {name:'name'}])
+      isValid(obj, [{name:'_id'}, {name:'userId'}, {name:'path'}, {name:'filename'}])
      :isValid(obj, [{name:'_id'}, {name:'password'}]);
     if (validMsg) throw {error: new Error(validMsg), code: BAD_REQUEST};
 
     try {
       const rt = (isFile)?(await this.fileInfo.insertOne(obj))
         :(await this.userInfo.insertOne(obj));
-      assert(rt.insertId === obj._id);
     } catch (error) {
       if (error.code === 11000)
         throw {error: new Error(`${objType} ${obj._id} already exists`),
                 code: CONFLICT};
-      else throw err;
+      else throw error;
     }
 
   }
@@ -66,8 +72,9 @@ class UserMiddleware {
 
     const set = Object.assign({}, obj);
     delete set._id;
-    const ret = (isFile)?(await this.fileInfo.updateOne({ _id: obj._id }, { $set: set }))
-      :(await this.userInfo.updateOne({ _id: obj._id }, { $set: set }));
+    const ret = ((isFile)?(await this.fileInfo.updateOne({ _id: obj._id }, { $set: set }))
+          :(await this.userInfo.updateOne({ _id: obj._id }, { $set: set })));
+    console.log(ret.matchedCount);
     if (ret.matchedCount !== 1) {
       throw {error: new Error(`${objType} ${obj._id} not found`),
             code: NOT_FOUND};
@@ -81,17 +88,18 @@ class UserMiddleware {
      :isValid(obj, [{name:'_id'}]);
     if (validMsg) throw {error: new Error(validMsg), code: BAD_REQUEST};
 
-    const ret = (isFile)?(await this.fileInfo.deleteOne({ _id: obj._id }))
-      :(await this.userInfo.deleteOne({ _id: obj._id }))
-    if (ret.deleteCount !== 1) {
-      throw throw {error: new Error(`${objType} ${obj._id} not found`),
+    const ret = ((isFile)?(await this.fileInfo.deleteOne({ _id: obj._id }))
+          :(await this.userInfo.deleteOne({ _id: obj._id })));
+    console.log(ret.deletedCount);
+    if (ret.deletedCount !== 1) {
+      throw {error: new Error(`${objType} ${obj._id} not found`),
             code: NOT_FOUND};
     }
   }
 
   async search(obj, isFile=false) {
     const fd = ((isFile)?(await this.fileInfo.find(obj))
-        :(await this.userInfo.find(user))
+        :(await this.userInfo.find(obj))
       );
      return await fd.toArray();
   }
@@ -99,7 +107,7 @@ class UserMiddleware {
   async check_name(user) {
     if (user._id === undefined) return false;
     const fd = this.userInfo.findOne({_id: user._id});
-    return fd !== undefined;
+    return fd !== null;
   }
 
   async check_pwd(user) {
@@ -142,4 +150,3 @@ function isValid(obj, mustHave=[]) {
   return err;
 }
 
-module.exports = UserMiddleware;

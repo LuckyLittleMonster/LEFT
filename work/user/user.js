@@ -60,7 +60,7 @@ async function go(args) {
     }
     const port = getPort(args[1]);
     await writeFile(PID_FILE, `${process.pid}\n`);
-    const database = resources.database = new UserDatabase(args[0], DB_NAME);
+    const database = resources.database = await UserDatabase(args[0], DB_NAME);
     const server = resources.server = UserServer.createServer(database, port);
   }
   catch (err) {
@@ -71,5 +71,5 @@ async function go(args) {
   }
 }
 
-if (process.argv.length < 2) usage();
-go(process.argv.slice(2));
+if (process.argv.length !== 4) usage();
+else go(process.argv.slice(2));
