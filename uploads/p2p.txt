@@ -1,8 +1,0 @@
-﻿  test.cc
-d:\coding\allinone\pay2print\test.cc(125): warning C4390: ';': empty controlled statement found; is this the intent?
-  Generating code
-  2 of 307 functions ( 0.7%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
-  Finished generating code
-  pay2print.vcxproj -> d:\coding\allinone\Release\pay2print.exe

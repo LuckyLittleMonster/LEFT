@@ -7,6 +7,8 @@ from flask import send_from_directory
 up_folder = './uploads'
 out_folder = './output'
 allowed_extensions = set(['txt', 'png', 'jpg'])
+commandList = set(['lineLength', 'lineLength6'])
+
 
 if not os.path.exists(up_folder):
     os.makedirs(up_folder)
@@ -44,8 +46,10 @@ def upload_file():
         if ufile and allowed_file(ufile.filename):
             filename = secure_filename(ufile.filename)
             ufile.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            os.system("script/lineLength"+" 0<uploads/"+filename + " 1>output/"+filename)
-            return redirect('/output/'+filename)
+            cmd = request.form['command']
+            if cmd in commandList:
+                os.system("script/"+cmd+" 0<uploads/"+filename + " 1>output/"+cmd+"_"+filename)
+            return redirect('/output/'+cmd+"_"+filename)
     return app.send_static_file('upload.html')
 
 if __name__=="__main__":

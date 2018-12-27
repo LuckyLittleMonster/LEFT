@@ -2,6 +2,10 @@
 <title>upload new file</title>
 <h1>upload file</h1>
 <form method=post enctype=multipart/form-data>
+  <select name=command>
+  	<option value=lineLength>Count Length of Each Line</option>
+  	<option value=lineLength6>Count Length of Each Line after 6 seconds</option>
+  </select> <p>
   <input type=file name=file>
   <input type=submit name=upload>
 </form>
