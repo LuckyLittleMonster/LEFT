@@ -38,12 +38,15 @@ def upload_file():
     if request.method == 'POST':
         if 'file' not in request.files:
             flash('No file part')
+            print("case 1")
             return redirect(request.url)
         ufile = request.files['file']
         if ufile.filename == '':
             flash("No selected file")
+            print("case 2")
             return redirect(request.url)
         if ufile and allowed_file(ufile.filename):
+            print("case 3")
             filename = secure_filename(ufile.filename)
             ufile.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             cmd = request.form['command']
@@ -54,4 +57,4 @@ def upload_file():
 
 if __name__=="__main__":
     app.secret_key = 'supersecretkey'
-    app.run(debug=True, host='0.0.0.0', port=80)
+    app.run(debug=True, host='0.0.0.0', port=8000)
