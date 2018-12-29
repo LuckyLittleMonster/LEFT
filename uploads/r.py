@@ -3,7 +3,6 @@ import os, errno, time, requests
 bufferSize = 1024;
 PATH = "filename";
 lynx = "http://lynx.cs.binghamton.edu:8000"
-uploadPath = "./"
 
 while 1:
 	if os.path.isfile(PATH) :
@@ -17,7 +16,8 @@ while 1:
 			form = {'command':'lineLength'}
 			file = {'file':(filename, open(filename, 'rb'))}
 			r = requests.post(url=lynx, data=form, files=file);
-			print(r.text)
+			with open("../output/" + filename, "wb") as written:
+				written.write(r.content)
 		
 	#Other functions
 	# print("Sleep 500 ms")
