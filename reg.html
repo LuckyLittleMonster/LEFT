@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>LEFT</title>
+	<title>Register</title>
 </head>
 <body>
-<h1>Login</h1>
-<form method="POST" action="../cgi-bin/login.py">
+<h1>Register</h1>
+<form method="POST" action="../cgi-bin/reg.py">
 	<label>
 	<span class="label">username: </span><input id="username" name="username" type="text">
 	</label>
@@ -15,7 +15,11 @@
 	</label>
 	<br/>
 	<label>
-	<input name="submit" type="submit" value="login" class="control" onclick="hash_password()">
+	<span class="label">confirm: </span><input id="confirm" name="confirm" type="password">
+	</label>
+	<br/>
+	<label>
+	<input name="submit" type="submit" value="reg" class="control" onclick="hash_password()">
 	</label>
 </form>
 </body>
